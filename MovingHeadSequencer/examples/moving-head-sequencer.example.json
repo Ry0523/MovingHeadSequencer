@@ -1,0 +1,54 @@
+{
+  "headCount": 4,
+  "allowLayoutWarnings": false,
+  "fixtureProfile": {
+    "name": "LegacySafe",
+    "panTravelDegrees": 540,
+    "tiltTravelDegrees": 270,
+    "pan": {
+      "minimum": 38,
+      "maximum": 212,
+      "park": 170,
+      "outer": 130,
+      "center": 210,
+      "inverted": false
+    },
+    "tilt": {
+      "minimum": 38,
+      "maximum": 123,
+      "park": 50,
+      "outer": 85,
+      "center": 100,
+      "inverted": false
+    },
+    "fixtures": {
+      "Mover1": {
+        "pan": {
+          "minimum": 38,
+          "maximum": 212,
+          "park": 170,
+          "outer": 130,
+          "center": 210,
+          "inverted": true
+        }
+      }
+    }
+  },
+  "validation": {
+    "minimumMovementDurationMs": 200,
+    "maximumPanDelta": 174,
+    "maximumTiltDelta": 85,
+    "maximumDynamicMotionPercent": 70,
+    "treatWarningsAsErrors": false
+  },
+  "audit": {
+    "minimumGapMs": 1000,
+    "nearDarkThresholdPercent": 10,
+    "outputFormat": "table"
+  },
+  "sequenceOverrides": {
+    "All I Really Want For Christmas (feat.xsq": {
+      "cueSheetPath": "tools/MovingHeadSequencer/examples/liljon-cue-sheet.example.json"
+    }
+  }
+}

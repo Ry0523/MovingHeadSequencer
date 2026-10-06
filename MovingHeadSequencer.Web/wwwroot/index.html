@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#121719">
+  <title>Moving Head Studio</title>
+  <link rel="stylesheet" href="styles.css?v=precheck-fixes">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div class="brand-copy">
+          <h1>Moving Head Studio</h1>
+          <div class="brand-meta">
+            <button type="button" id="workspaceButton" class="workspace-link" title="Change workspace">
+              <span id="workspaceName">Workspace</span>
+            </button>
+            <span class="meta-separator" aria-hidden="true">·</span>
+            <span id="workspaceStatus" class="project-status" aria-live="polite">Loading</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-controls">
+        <div class="topbar-context">
+          <label class="field compact-field">
+            <span>Sequence</span>
+            <select id="sequenceSelect" aria-label="Sequence"></select>
+          </label>
+          <label class="field head-count-field">
+            <span>Heads</span>
+            <input id="headCountInput" type="number" min="2" max="12" step="1" value="4" inputmode="numeric">
+          </label>
+        </div>
+        <div class="command-group">
+          <button type="button" id="regenerateSongButton" class="quiet-button">Regenerate song</button>
+          <button type="button" id="undoSuggestionButton" class="icon-button" title="Undo last cue or song regeneration" aria-label="Undo last cue or song regeneration" disabled>↶</button>
+          <button type="button" id="generateButton" class="primary-button">Generate XSQ</button>
+          <details id="projectMenu" class="project-menu">
+            <summary class="icon-button" title="More actions" aria-label="More actions">⋯</summary>
+            <div class="project-menu-popup" role="menu">
+              <button type="button" id="workspaceMenuButton" role="menuitem">Change workspace…</button>
+              <div class="menu-separator" role="separator"></div>
+              <button type="button" id="importProjectButton" role="menuitem">Import project…</button>
+              <button type="button" id="exportProjectButton" role="menuitem">Export project copy…</button>
+              <button type="button" id="resetProjectButton" class="danger-command" role="menuitem">Rebuild from sequence</button>
+            </div>
+          </details>
+          <input id="projectFileInput" type="file" accept=".mhproj,application/vnd.moving-head-studio.project+json" hidden>
+        </div>
+      </div>
+    </header>
+
+    <main id="workspace" class="workspace">
+      <section id="emptyWorkspace" class="empty-workspace" aria-labelledby="emptyWorkspaceTitle" hidden>
+        <div class="empty-workspace-content">
+          <span class="eyebrow">No sequences found</span>
+          <h2 id="emptyWorkspaceTitle">Choose an xLights sequence folder</h2>
+          <p>Moving Head Studio needs a workspace directory containing at least one valid <strong>.xsq</strong> sequence file.</p>
+          <div class="empty-workspace-path">
+            <span>Current folder</span>
+            <strong id="emptyWorkspacePath"></strong>
+          </div>
+          <button type="button" id="emptyWorkspaceButton" class="primary-button">Choose workspace…</button>
+        </div>
+      </section>
+      <section class="stage-panel" aria-label="Moving head preview">
+        <div class="stage-toolbar">
+          <div class="transport">
+            <button type="button" id="playButton" class="icon-button" title="Play" aria-label="Play">▶</button>
+            <button type="button" id="restartButton" class="icon-button" title="Return to start" aria-label="Return to start">↶</button>
+            <button type="button" id="loopButton" class="icon-button" title="Loop selected cue" aria-label="Loop selected cue" aria-pressed="false">↻</button>
+            <output id="timeDisplay">00:00.000</output>
+            <label class="volume-control" title="Playback volume">
+              <span aria-hidden="true">♪</span>
+              <input id="volumeSlider" type="range" min="0" max="1" step="0.05" value="0.8" aria-label="Playback volume">
+            </label>
+          </div>
+          <div class="stage-readouts">
+            <span id="sectionReadout">No cue selected</span>
+            <span id="timingReadout" class="status-pill">No timing</span>
+            <span id="motionReadout" class="status-pill">0% pan time</span>
+          </div>
+          <div id="previewSetupWrap" class="preview-setup-wrap">
+            <button type="button" id="previewSetupButton" class="icon-button" title="Fixture setup" aria-label="Fixture setup" aria-controls="previewSetupPopover" aria-expanded="false">⚙</button>
+            <section id="previewSetupPopover" class="preview-popover" aria-label="Fixture setup" hidden>
+              <div class="preview-popover-header">
+                <div>
+                  <span class="eyebrow">Sequence-wide</span>
+                  <h2>Fixture setup</h2>
+                </div>
+                <button type="button" id="previewSetupCloseButton" class="icon-button" title="Close fixture setup" aria-label="Close fixture setup">×</button>
+              </div>
+              <section class="movement-limits fixture-output-limits" aria-labelledby="movementLimitsTitle">
+                <div class="movement-limits-heading">
+                  <h3 id="movementLimitsTitle">Output boundaries</h3>
+                  <span>DMX · 0–255</span>
+                </div>
+                <div class="travel-calibration">
+                  <label class="field">
+                    <span>Pan travel</span>
+                    <span class="degree-input">
+                      <input id="panTravelDegreesInput" type="number" min="1" max="1080" step="1" inputmode="numeric" aria-label="Full physical pan travel in degrees">
+                      <i>°</i>
+                    </span>
+                  </label>
+                  <label class="field">
+                    <span>Tilt travel</span>
+                    <span class="degree-input">
+                      <input id="tiltTravelDegreesInput" type="number" min="1" max="1080" step="1" inputmode="numeric" aria-label="Full physical tilt travel in degrees">
+                      <i>°</i>
+                    </span>
+                  </label>
+                </div>
+                <p class="travel-calibration-note">Set full mechanical travel from the fixture manual for accurate degree readouts.</p>
+                <div class="axis-limit-row">
+                  <strong>Pan</strong>
+                  <div class="axis-boundary-controls">
+                    <div class="axis-boundary-readouts">
+                      <output id="panMinimumOutput" for="panMinimumInput"></output>
+                      <output id="panMaximumOutput" for="panMaximumInput"></output>
+                    </div>
+                    <div class="dual-range">
+                      <span id="panSliderWindow" class="dual-range-window"></span>
+                      <input id="panMinimumInput" type="range" min="0" max="255" step="1" aria-label="Pan minimum">
+                      <input id="panMaximumInput" type="range" min="0" max="255" step="1" aria-label="Pan maximum">
+                    </div>
+                  </div>
+                  <div id="panRangeVisual" class="axis-range-visual" role="img" aria-label="Pan normalized output range">
+                    <span class="axis-range-view-label">Top view · normalized</span>
+                    <svg class="axis-wedge" viewBox="0 0 220 92" aria-hidden="true">
+                      <path class="axis-wedge-domain" d="M110 78 L48 78 A62 62 0 0 1 172 78 Z"></path>
+                      <path id="panRangeWindow" class="axis-wedge-window"></path>
+                      <line id="panMinimumMarker" class="axis-wedge-marker"></line>
+                      <line id="panMaximumMarker" class="axis-wedge-marker"></line>
+                      <circle class="axis-wedge-pivot" cx="110" cy="78" r="5"></circle>
+                      <text id="panLowDirectionLabel" x="14" y="89">L · 0</text>
+                      <text x="110" y="12" text-anchor="middle">FORWARD</text>
+                      <text id="panHighDirectionLabel" x="206" y="89" text-anchor="end">255 · R</text>
+                    </svg>
+                  </div>
+                </div>
+                <div class="axis-limit-row">
+                  <strong>Tilt</strong>
+                  <div class="axis-boundary-controls" title="Adjust this range to keep floor-mounted beams out of the forward-facing position.">
+                    <div class="axis-boundary-readouts">
+                      <output id="tiltMinimumOutput" for="tiltMinimumInput"></output>
+                      <output id="tiltMaximumOutput" for="tiltMaximumInput"></output>
+                    </div>
+                    <div class="dual-range">
+                      <span id="tiltSliderWindow" class="dual-range-window"></span>
+                      <input id="tiltMinimumInput" type="range" min="0" max="255" step="1" aria-label="Tilt minimum">
+                      <input id="tiltMaximumInput" type="range" min="0" max="255" step="1" aria-label="Tilt maximum">
+                    </div>
+                  </div>
+                  <div id="tiltRangeVisual" class="axis-range-visual" role="img" aria-label="Tilt normalized output range">
+                    <span class="axis-range-view-label">Side view · floor mount · normalized</span>
+                    <svg class="axis-wedge" viewBox="0 0 220 92" aria-hidden="true">
+                      <path class="axis-wedge-domain" d="M110 78 L48 78 A62 62 0 0 1 172 78 Z"></path>
+                      <path id="tiltRangeWindow" class="axis-wedge-window"></path>
+                      <line id="tiltMinimumMarker" class="axis-wedge-marker"></line>
+                      <line id="tiltMaximumMarker" class="axis-wedge-marker"></line>
+                      <circle class="axis-wedge-pivot" cx="110" cy="78" r="5"></circle>
+                      <text id="tiltLowDirectionLabel" x="14" y="89">0 · FORWARD</text>
+                      <text x="110" y="12" text-anchor="middle">UP</text>
+                      <text id="tiltHighDirectionLabel" x="206" y="89" text-anchor="end">BACK · 255</text>
+                    </svg>
+                  </div>
+                </div>
+              </section>
+              <div class="preview-scope-label"><span class="eyebrow">Preview only</span></div>
+              <div class="preview-setting">
+                <span class="preview-setting-label">Mount orientation</span>
+                <div class="mount-switch" role="group" aria-label="Fixture mounting orientation">
+                  <button type="button" data-mount-mode="floor" class="active" aria-pressed="true">Floor ↑</button>
+                  <button type="button" data-mount-mode="truss" aria-pressed="false">Truss ↓</button>
+                </div>
+              </div>
+              <div class="preview-setting">
+                <div class="section-heading-row">
+                  <span class="preview-setting-label">Fixtures</span>
+                  <div class="mini-actions">
+                    <button type="button" id="previewAllHeadsButton">All</button>
+                    <button type="button" id="previewOddHeadsButton">Odd</button>
+                    <button type="button" id="previewEvenHeadsButton">Even</button>
+                  </div>
+                </div>
+                <div id="previewFixtureButtons" class="fixture-grid" aria-label="Preview calibration fixtures"></div>
+              </div>
+              <fieldset class="orientation-field">
+                <legend>Base yaw · vertical axis</legend>
+                <div id="rotationButtons" class="rotation-grid" role="group" aria-label="Preview fixture base yaw around the vertical axis">
+                  <button type="button" data-rotation="0" title="No base yaw adjustment">0°</button>
+                  <button type="button" data-rotation="90" title="Yaw selected preview fixtures 90 degrees">90°</button>
+                  <button type="button" data-rotation="180" title="Yaw selected preview fixtures 180 degrees">180°</button>
+                  <button type="button" data-rotation="270" title="Yaw selected preview fixtures 270 degrees">270°</button>
+                </div>
+              </fieldset>
+            </section>
+          </div>
+        </div>
+        <div class="stage-frame">
+          <canvas id="stageCanvas" aria-label="Fixed front view of moving heads"></canvas>
+          <div class="stage-badge">FRONT · FIXED</div>
+        </div>
+        <div class="scrubber-row">
+          <input id="playhead" type="range" min="0" max="1000" value="0" aria-label="Playback position">
+        </div>
+      </section>
+
+      <aside class="inspector" aria-label="Cue inspector">
+        <div class="inspector-heading">
+          <div>
+            <span class="eyebrow">Selected cue</span>
+            <input id="cueName" class="cue-title-input" value="Cue" aria-label="Cue name">
+          </div>
+          <div class="cue-actions">
+            <button type="button" id="splitButton" class="icon-button" title="Split cue at playhead" aria-label="Split cue at playhead">⑂</button>
+            <button type="button" id="deleteButton" class="icon-button danger" title="Delete cue and merge left" aria-label="Delete cue and merge left">×</button>
+          </div>
+        </div>
+
+        <div class="inspector-scroll">
+          <section class="control-section">
+            <h2>Timing</h2>
+            <div class="two-column">
+              <label class="field">
+                <span>Start</span>
+                <input id="cueStart" type="number" min="0" step="25">
+              </label>
+              <label class="field">
+                <span>End</span>
+                <input id="cueEnd" type="number" min="25" step="25">
+              </label>
+            </div>
+            <p id="cueValidationSummary" class="cue-validation-summary" hidden></p>
+          </section>
+
+          <section class="control-section">
+            <div class="section-heading-row">
+              <h2>Fixture scope</h2>
+              <div class="mini-actions">
+                <button type="button" id="allHeadsButton">All</button>
+                <button type="button" id="oddHeadsButton">Odd</button>
+                <button type="button" id="evenHeadsButton">Even</button>
+              </div>
+            </div>
+            <div id="fixtureButtons" class="fixture-grid" aria-label="Fixture scope; gold underline indicates fixtures lit at the current playhead"></div>
+          </section>
+
+          <section class="control-section">
+            <h2>Movement</h2>
+            <label class="field">
+              <span>Source</span>
+              <select id="presetSelect">
+                <option value="">Custom</option>
+              </select>
+            </label>
+            <div class="two-column">
+              <label class="field">
+                <span>Pan</span>
+                <select id="panSelect"></select>
+              </label>
+              <label class="field">
+                <span>Tilt</span>
+                <select id="tiltSelect"></select>
+              </label>
+            </div>
+            <label class="field">
+              <span>Rhythm</span>
+              <select id="rhythmSelect" title="Choose beat-aligned movement or turn rhythmic movement off"></select>
+            </label>
+            <div class="two-column">
+              <label class="field">
+                <span>Energy</span>
+                <select id="motionEnergySelect"></select>
+              </label>
+              <label class="field">
+                <span>Shape</span>
+                <select id="motionShapeSelect"></select>
+              </label>
+            </div>
+            <label class="field">
+              <span>Phase</span>
+              <select id="motionPhaseSelect"></select>
+            </label>
+          </section>
+
+          <section class="control-section">
+            <h2>Beam</h2>
+            <div class="two-column">
+              <label class="field">
+                <span>Base dimmer</span>
+                <select id="dimmerSelect"></select>
+              </label>
+              <label class="field">
+                <span>Beam envelope</span>
+                <select id="intensityEnvelopeSelect"></select>
+              </label>
+            </div>
+            <label class="toggle-row">
+              <span>Shutter open</span>
+              <input id="shutterToggle" type="checkbox">
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </section>
+
+          <section class="control-section regeneration-section">
+            <div class="section-heading-row">
+              <h2>Regenerate cue</h2>
+              <div class="mini-actions">
+                <button type="button" id="refreshSuggestionsButton" title="Refresh regeneration choices" aria-label="Refresh regeneration choices">↻</button>
+              </div>
+            </div>
+            <div id="appliedRegeneration" class="applied-regeneration" aria-live="polite" hidden></div>
+            <p id="suggestionContext" class="suggestion-context">Select a cue</p>
+            <div id="suggestionChoices" class="suggestion-list" aria-live="polite"></div>
+          </section>
+
+        </div>
+      </aside>
+
+      <section class="timeline-panel" aria-label="Cue timeline">
+        <div class="timeline-header">
+          <div>
+            <span class="eyebrow">Cue timeline</span>
+            <strong id="timelineSummary">0 cues</strong>
+          </div>
+          <div class="timeline-legend" aria-hidden="true">
+            <span><i class="legend-swatch dark"></i>Dark</span>
+            <span><i class="legend-swatch hold"></i>Hold</span>
+            <span><i class="legend-swatch motion"></i>Motion</span>
+          </div>
+          <div class="timeline-controls">
+            <label class="inline-field">
+              <span>Grid</span>
+              <select id="timingSourceSelect" aria-label="Timing grid source"></select>
+            </label>
+            <label class="inline-field">
+              <span>Snap</span>
+              <select id="snapSelect" aria-label="Cue snapping">
+                <option value="off">25 ms</option>
+                <option value="beat" selected>Beat</option>
+                <option value="bar">Bar</option>
+              </select>
+            </label>
+            <button type="button" id="mediaReadout" class="media-readout" title="Choose a local audio file">Audio not linked</button>
+          </div>
+        </div>
+        <div id="timeline" class="timeline">
+          <canvas id="timingCanvas" aria-hidden="true"></canvas>
+          <div id="timelinePlayhead" class="timeline-playhead"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="statusbar">
+      <span id="saveStatus">Ready</span>
+      <span id="regenerationSummary" class="statusbar-summary" aria-live="polite" hidden></span>
+      <div class="statusbar-right">
+        <span id="outputName"></span>
+        <button type="button" id="validationStatusButton" class="validation-status good" aria-controls="validationDrawer" aria-expanded="false">Validation · Ready</button>
+      </div>
+    </footer>
+  </div>
+
+  <div id="validationDrawerBackdrop" class="drawer-backdrop" hidden></div>
+  <aside id="validationDrawer" class="validation-drawer" aria-labelledby="validationDrawerTitle" hidden>
+    <div class="drawer-header">
+      <div>
+        <span class="eyebrow">Sequence health</span>
+        <h2 id="validationDrawerTitle">Validation</h2>
+      </div>
+      <div class="drawer-heading-actions">
+        <span id="validationBadge" class="status-pill good">Ready</span>
+        <button type="button" id="validationDrawerCloseButton" class="icon-button" title="Close validation" aria-label="Close validation">×</button>
+      </div>
+    </div>
+    <div class="drawer-body">
+      <div id="validationMetrics" class="metric-grid"></div>
+      <ul id="validationIssues" class="issue-list"></ul>
+    </div>
+  </aside>
+
+  <dialog id="workspaceDialog" class="app-dialog workspace-dialog" aria-labelledby="workspaceDialogTitle">
+    <div class="dialog-header">
+      <div>
+        <span class="eyebrow">Sequence library</span>
+        <h2 id="workspaceDialogTitle">Workspace</h2>
+      </div>
+      <button type="button" id="workspaceDialogCloseButton" class="icon-button" title="Close workspace dialog" aria-label="Close workspace dialog">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="workspace-current">
+        <span class="eyebrow">Current folder</span>
+        <strong id="workspaceCurrentPath"></strong>
+      </div>
+      <label class="field">
+        <span>Sequence folder</span>
+        <input id="workspacePathInput" type="text" spellcheck="false" autocomplete="off">
+      </label>
+      <button type="button" id="browseWorkspaceButton" class="quiet-button workspace-browse-button">Browse…</button>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="cancelWorkspaceButton" class="quiet-button">Cancel</button>
+      <button type="button" id="confirmWorkspaceButton" class="primary-button">Use folder</button>
+    </div>
+  </dialog>
+
+  <dialog id="generateDialog" class="app-dialog" aria-labelledby="generateDialogTitle">
+    <div class="dialog-header">
+      <div>
+        <span class="eyebrow">Sequence output</span>
+        <h2 id="generateDialogTitle">Generate XSQ</h2>
+      </div>
+      <button type="button" id="generateDialogCloseButton" class="icon-button" title="Close generation dialog" aria-label="Close generation dialog">×</button>
+    </div>
+    <div class="dialog-body">
+      <p id="generateSequenceSummary" class="dialog-summary"></p>
+      <div id="generationModeControl" class="segmented-control" role="radiogroup" aria-label="Generation destination">
+        <label>
+          <input type="radio" name="generationMode" value="new" checked>
+          <span>New file</span>
+        </label>
+        <label>
+          <input type="radio" name="generationMode" value="original">
+          <span>Original file</span>
+        </label>
+      </div>
+      <div id="newFilePanel">
+        <label class="field">
+          <span>Output file</span>
+          <input id="outputFileName" type="text" spellcheck="false">
+        </label>
+        <p class="new-file-note">Use the generated XSQ in xLights to import its moving-head effects into your sequence.</p>
+      </div>
+      <div id="originalFilePanel" class="original-file-panel" hidden>
+        <div class="replace-warning">
+          <span class="eyebrow">Original sequence</span>
+          <strong id="originalSourceFileName"></strong>
+          <p>A verified timestamped backup is created before the original is replaced.</p>
+        </div>
+        <section class="backup-section" aria-labelledby="backupSectionTitle">
+          <div class="section-heading-row">
+            <h3 id="backupSectionTitle">Original backups</h3>
+            <button type="button" id="refreshBackupsButton" class="icon-button" title="Refresh backups" aria-label="Refresh backups">↻</button>
+          </div>
+          <div id="backupList" class="backup-list" aria-live="polite"></div>
+        </section>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="cancelGenerateButton" class="quiet-button">Cancel</button>
+      <button type="button" id="confirmGenerateButton" class="primary-button">Generate XSQ</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <input id="audioFileInput" type="file" accept="audio/*,.mp3,.m4a,.wav,.flac,.ogg,.aac" hidden>
+  <audio id="audioElement" preload="metadata" hidden></audio>
+  <script src="app.js?v=precheck-fixes" defer></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{
+  "name": "Lil Jon restrained example",
+  "durationMs": 166000,
+  "defaults": {
+    "pan": "Park",
+    "tilt": "Park",
+    "dimmer": "All0",
+    "shutterOpen": false
+  },
+  "patterns": {
+    "Accent": {
+      "pan": "OpenFan",
+      "tilt": "Rise",
+      "dimmer": "All100",
+      "shutterOpen": true
+    },
+    "VerseHold": {
+      "pan": "Fan",
+      "tilt": "High",
+      "dimmer": "All45",
+      "shutterOpen": true
+    },
+    "Chorus": {
+      "pan": "Cross",
+      "tilt": "InverseBounce",
+      "dimmer": "All75",
+      "shutterOpen": true
+    },
+    "Blackout": {
+      "pan": "Park",
+      "tilt": "Park",
+      "dimmer": "All0",
+      "shutterOpen": false
+    }
+  },
+  "sections": [
+    { "name": "Intro", "startMs": 0, "endMs": 9050, "pattern": "Blackout" },
+    { "name": "Opening hit", "startMs": 9050, "endMs": 10000, "pattern": "Accent" },
+    { "name": "Verse one", "startMs": 10000, "endMs": 47950, "pattern": "VerseHold" },
+    { "name": "Dark reposition", "startMs": 47950, "endMs": 52100, "pattern": "Blackout" },
+    { "name": "Second entrance", "startMs": 52100, "endMs": 52850, "pattern": "Accent" },
+    { "name": "Chorus one", "startMs": 52850, "endMs": 71625, "pattern": "Chorus" },
+    { "name": "Breath", "startMs": 71625, "endMs": 72025, "pattern": "Blackout" },
+    { "name": "Chorus two", "startMs": 72025, "endMs": 105725, "pattern": "Chorus" },
+    { "name": "Bridge rest", "startMs": 105725, "endMs": 115300, "pattern": "Blackout" },
+    { "name": "Verse return", "startMs": 115300, "endMs": 148550, "pattern": "VerseHold" },
+    { "name": "Pre-finale rest", "startMs": 148550, "endMs": 153650, "pattern": "Blackout" },
+    { "name": "Finale", "startMs": 153650, "endMs": 162300, "pattern": "Chorus" },
+    { "name": "Outro", "startMs": 162300, "endMs": 166000, "pattern": "Blackout" }
+  ]
+}

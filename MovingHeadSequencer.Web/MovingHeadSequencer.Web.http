@@ -1,0 +1,65 @@
+@baseUrl = http://127.0.0.1:5187
+
+### Health
+GET {{baseUrl}}/api/health
+
+### Load the Lil Jon editor with four heads
+GET {{baseUrl}}/api/bootstrap?sequence=liljon&headCount=4
+
+### Compile a minimal full-duration preview
+POST {{baseUrl}}/api/preview
+Content-Type: application/json
+
+{
+  "sequenceId": "liljon",
+  "headCount": 4,
+  "cueSheet": {
+    "name": "Single hold",
+    "durationMs": 166000,
+    "defaults": {
+      "pan": "Park",
+      "tilt": "Park",
+      "dimmer": "All45",
+      "shutterOpen": true
+    },
+    "patterns": {},
+    "sections": [
+      {
+        "name": "Hold",
+        "startMs": 0,
+        "endMs": 166000,
+        "heads": []
+      }
+    ]
+  }
+}
+
+### Generate the same cue sheet
+POST {{baseUrl}}/api/generate
+Content-Type: application/json
+
+{
+  "sequenceId": "liljon",
+  "headCount": 4,
+  "outputFileName": "All-I-Really-Want-For-Christmas-editor-4MH.xsq",
+  "force": false,
+  "cueSheet": {
+    "name": "Single hold",
+    "durationMs": 166000,
+    "defaults": {
+      "pan": "Park",
+      "tilt": "Park",
+      "dimmer": "All45",
+      "shutterOpen": true
+    },
+    "patterns": {},
+    "sections": [
+      {
+        "name": "Hold",
+        "startMs": 0,
+        "endMs": 166000,
+        "heads": []
+      }
+    ]
+  }
+}

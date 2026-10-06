@@ -1,0 +1,21 @@
+{
+  "sequences": [
+    {
+      "sequencePath": "../../../A-Christmas-Storm(old_layout).xsq",
+      "outputPath": "../../../generated/A-Christmas-Storm-4MH.xsq",
+      "headCount": 4
+    },
+    {
+      "sequencePath": "../../../All I Really Want For Christmas (feat.xsq",
+      "outputPath": "../../../generated/All-I-Really-Want-For-Christmas-4MH.xsq",
+      "headCount": 4,
+      "cueSheetPath": "liljon-cue-sheet.example.json",
+      "fixtureSelection": {
+        "includeNames": [],
+        "excludeNames": [],
+        "includeGroups": [],
+        "includeTags": []
+      }
+    }
+  ]
+}
